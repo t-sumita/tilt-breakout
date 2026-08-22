@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TILT BREAKOUT</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <span>STAGE <b id="hud-stage">1/3</b></span>
+    <span>BALLS <b id="hud-lives">3</b></span>
+    <span>SCORE <b id="hud-score">0000</b></span>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="stage" width="400" height="560"></canvas>
+    <div id="overlay" class="overlay"><span id="overlay-text"></span></div>
+  </div>
+  <p class="hint">1本指スワイプ: パドル移動 / 2本指タッチ: 傾き調整<br>矢印キー: 移動・Q/E: 傾き・Space: 発射</p>
+</div>
+
+<script type="module" src="js/main.js"></script>
+
+<!-- ══ Subutomo 統一フッター。支援リンク=右下クラスタ / © と版=左下バッジ ══ -->
+<div class="footer-right">
+  <div class="support-links" aria-label="チップ・応援リンク">
+    <a href="https://ko-fi.com/subutomo" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">☕ </span>Ko-fi</a>
+    <span class="support-sep" aria-hidden="true">・</span>
+    <a href="https://github.com/sponsors/t-sumita" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">❤️ </span>Sponsors</a>
+  </div>
+  <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLSf_thpSe4TfQ_EloElTBsCiMKgypYTKLCs0dSTmaF_FXZSvIg/viewform?usp=pp_url&amp;entry.2036331541=TILT+BREAKOUT+(tilt)" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">📣 </span>Feedback</a>
+</div>
+<div class="footer-bar" aria-hidden="true"></div>
+
+<!-- Subutomo サイト選択バッジ(台帳はローカル参照。正本は subutomo-template) -->
+<script>
+  window.SUBUTOMO_BADGE_CONFIG = {
+    currentSiteId: 'tilt-breakout',
+    sitesJsonPath: 'config/subutomo-sites.json',
+    logoPath: './common/assets/logo.png',
+    theme: 'dark-bg',
+    privacy: { localStorage: false, analytics: true },
+    onSecretAction: null
+  };
+</script>
+<script src="./assets/subutomo-badge.js"></script>
+
+<!-- Cloudflare Web Analytics(匿名・Cookieレス。token は登録後に差し替え。STATUS.md 参照) -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+  data-cf-beacon='{"token": "PLACEHOLDER_TOKEN_REGISTER_LATER"}'></script>
+</body>
+</html>

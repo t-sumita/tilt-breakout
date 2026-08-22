@@ -1,0 +1,7 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# 動作確認用の一時生成物(スクリーンショット・ローカル専用ドライバ)
+/scripts/shots/
+/scripts/drive.mjs

@@ -1,0 +1,9 @@
+{
+  "defaultMode": "acceptEdits",
+  "permissions": {
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git push --force:*)"
+    ]
+  }
+}

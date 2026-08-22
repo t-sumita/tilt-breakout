@@ -1,0 +1,113 @@
+:root {
+  --bg: #0b1020;
+  --panel: #0f1630;
+  --line: #7fe3d4;
+  --line-dim: rgba(127, 227, 212, 0.35);
+  --fill-solid: rgba(127, 227, 212, 0.16);
+  --text: #dff7f2;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Courier New', ui-monospace, monospace;
+  min-height: 100%;
+}
+.wrap { max-width: 440px; margin: 0 auto; padding: 14px 12px 24px; }
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  padding: 0 4px 8px;
+  color: var(--line);
+}
+.hud b { color: var(--text); font-weight: 700; margin-left: 4px; }
+
+.canvas-wrap { position: relative; }
+canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--panel);
+  border: 1px solid var(--line-dim);
+  touch-action: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  pointer-events: none;
+  background: rgba(11, 16, 32, 0.35);
+}
+.overlay span {
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  text-shadow: 0 0 8px rgba(127, 227, 212, 0.5);
+  border: 1px solid var(--line);
+  padding: 10px 16px;
+  background: rgba(15, 22, 48, 0.85);
+}
+
+.hint {
+  font-size: 11px;
+  color: #7d94a8;
+  text-align: center;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+/* ── Subutomo 統一フッター(qed-arcade 版踏襲)──────────────────── */
+.footer-right {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 8999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.support-links { display: flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .03em; }
+.support-links a { color: #5a8a6a; text-decoration: none; white-space: nowrap; transition: color .2s; }
+.support-links a:hover { color: #aaffcc; text-decoration: underline; }
+.support-links .support-sep { color: #3a3a30; }
+.feedback-link {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .03em;
+  color: #aaffcc;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.feedback-link:hover { text-decoration: underline; }
+.footer-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 48px;
+  z-index: 7000;
+  background: linear-gradient(90deg,
+    rgba(11, 16, 32, 0.92) 0%, rgba(11, 16, 32, 0.6) 14%,
+    transparent 24%, transparent 76%,
+    rgba(11, 16, 32, 0.6) 86%, rgba(11, 16, 32, 0.92) 100%);
+  pointer-events: none;
+}
+.su-badge .footer-ver {
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #5a8a6a;
+  opacity: .9;
+}
+
+@media (max-width: 480px) {
+  .footer-right { right: 8px; bottom: 8px; gap: 8px; }
+  .support-links { font-size: 10px; }
+}

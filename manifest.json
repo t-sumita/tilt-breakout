@@ -1,0 +1,14 @@
+{
+  "name": "TILT BREAKOUT",
+  "short_name": "Tilt Breakout",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "description": "回転リング×固定障害物×通常ブロック崩しのブラウザゲーム",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "assets/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "assets/favicon-180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
