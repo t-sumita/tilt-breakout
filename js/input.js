@@ -9,6 +9,10 @@ export class PaddleInput {
     this.x = CANVAS_W / 2;
     this.y = PADDLE.yMax;
     this.tilt = 0;
+    this.vx = 0; // 直近フレームでの移動速度(px/s)。パドルの「受け」判定に使う
+    this.vy = 0;
+    this._prevX = this.x;
+    this._prevY = this.y;
     this.halfW = PADDLE.halfW;
     this.halfH = PADDLE.halfH;
     this.onTap = opts.onTap || (() => {});
@@ -78,9 +82,20 @@ export class PaddleInput {
     if (this.keys.has('KeyQ') || this.keys.has('Comma')) this.tilt -= tiltStep;
     if (this.keys.has('KeyE') || this.keys.has('Period')) this.tilt += tiltStep;
     this.tilt = clamp(this.tilt, -PADDLE.maxTiltDeg, PADDLE.maxTiltDeg);
+
+    // このフレームでの移動速度(ポインタ移動分も含む)を推定する
+    if (dt > 0) {
+      this.vx = (this.x - this._prevX) / dt;
+      this.vy = (this.y - this._prevY) / dt;
+    } else {
+      this.vx = 0;
+      this.vy = 0;
+    }
+    this._prevX = this.x;
+    this._prevY = this.y;
   }
 
   getPaddle() {
-    return { x: this.x, y: this.y, tilt: this.tilt, halfW: this.halfW, halfH: this.halfH };
+    return { x: this.x, y: this.y, tilt: this.tilt, halfW: this.halfW, halfH: this.halfH, vx: this.vx, vy: this.vy };
   }
 }

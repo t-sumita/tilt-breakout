@@ -1,7 +1,7 @@
 // Tilt Breakout — アプリケーション設定(版の単一の源)
 // このファイルの APP_VERSION が唯一の版定義。他ファイルへの版の直書きは禁止。
 
-export const APP_VERSION = '0.4.0';
+export const APP_VERSION = '0.5.0';
 
 export const CANVAS_W = 400;
 export const CANVAS_H = 560;
@@ -33,15 +33,29 @@ export const PADDLE = {
   tiltKeyRateDegPerSec: 60, // キーボードでの傾き変化速度
 };
 
-// ── ボール ──────────────────────────────────────────────────────────
+// ── ボール(重力+空気抵抗モデル。速度は固定せず、毎フレーム変化する)────
 export const BALL = {
   radius: 6,
-  speed: 230,               // px/s(一定速度を維持し、方向のみ変化)
-  maxBounceAngleDeg: 65,    // パドル反射の最大角度(端に当たるほど鋭角)
-  launchAngleDeg: -68,      // 発射時の基準角度(上方向)
+  maxBounceAngleDeg: 65,          // パドル反射の最大角度(端に当たるほど鋭角)
+  launchAngleDeg: -68,            // 発射時の基準角度(上方向、パドル傾き最大時)
+  launchSpeed: 400,                // px/s。発射時の基準速度
+  gravity: 120,                    // px/s^2。下方向への重力加速度
+  drag: 0.2,                       // 1秒あたりの速度比例減衰係数(空気抵抗)
+  // 壁/ブロック/ジャマー/パドル通常反発の直後に保証する最低速度。
+  // launchSpeed と同値にすることで、画面のどの位置で反発しても
+  // 重力に負けず最上部まで届く勢いを維持できるようにしている。
+  minBounceSpeed: 400,
+  paddleRestitutionNormal: 1.0,   // パドル通常反発時の反発係数
+  paddleRestitutionCatch: 0.25,   // パドル「受け」動作時の反発係数(大きく減速させる)
+  catchSpeedThreshold: 110,        // この速度未満でパドルに接触するとキャッチされる(px/s)
 };
 
-export const LIVES_START = 3;
+// ── ゲーム全体設定(Config画面から実行時に変更可能) ──────────────────
+export const GAME = {
+  livesStart: 3,     // 残機の初期値
+  timeLimitSec: 180,  // 制限時間(秒)
+};
+
 export const STAGE_COUNT = 3;
 
 export const SCORE = {
@@ -50,4 +64,14 @@ export const SCORE = {
   bastionSquareHit: 20,
   bastionCircleHit: 15,
   ringCoreHit: 25,
+};
+
+// ── Config画面のスライダー範囲(min/max/step) ─────────────────────────
+export const CONFIG_LIMITS = {
+  paddleMoveSpeedMultiplier: { min: 1, max: 6, step: 0.5 },
+  gravity: { min: 0, max: 400, step: 10 },
+  drag: { min: 0, max: 1, step: 0.05 },
+  timeLimitSec: { min: 10, max: 300, step: 10 },
+  livesStart: { min: 1, max: 9, step: 1 },
+  catchSpeedThreshold: { min: 0, max: 300, step: 10 },
 };

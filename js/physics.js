@@ -141,11 +141,23 @@ function clampHorizontalAngle(ball) {
   ball.vy = vySign * speed * Math.sin(MIN_ANGLE_FROM_HORIZONTAL);
 }
 
+// 衝突直後の速度が下限を下回っていたら、向きを保ったまま下限まで引き上げる。
+// 重力+空気抵抗で徐々に減速していく前提のもと、壁/ブロック/ジャマー/パドルへの
+// 反発直後は画面のどの位置からでも最上部まで届く勢いを保証するための措置。
+function ensureMinBounceSpeed(ball) {
+  const speed = Math.hypot(ball.vx, ball.vy);
+  if (speed < 1e-6 || speed >= BALL.minBounceSpeed) return;
+  const scale = BALL.minBounceSpeed / speed;
+  ball.vx *= scale;
+  ball.vy *= scale;
+}
+
 function reflect(ball, normal) {
   const dot = ball.vx * normal.x + ball.vy * normal.y;
   if (dot >= 0) return; // すでに離れていく向きなら反射しない(二重反射防止)
   ball.vx -= 2 * dot * normal.x;
   ball.vy -= 2 * dot * normal.y;
+  ensureMinBounceSpeed(ball);
   clampHorizontalAngle(ball);
 }
 
@@ -154,22 +166,41 @@ function pushOut(ball, normal, penetration) {
   ball.y += normal.y * penetration;
 }
 
-// ── パドルとの衝突。当たった位置と傾きで反射角を作る(古典ブロック崩し方式)──
+// ── パドルとの衝突。当たった位置と傾きで反射角を作る(古典ブロック崩し方式)。
+// パドルの速度ベクトルと玉の速度ベクトルの内積が正(パドルが玉を追いかけている)
+// なら「受け」動作として反発係数を大きく下げ、玉の速度を落とす。
+// 落とした結果の速度がしきい値未満ならパドルに吸着させる(キャッチ)。
 function collidePaddle(ball, paddle) {
   const angleRad = (paddle.tilt * Math.PI) / 180;
   const hit = circleRect(ball.x, ball.y, ball.radius, paddle.x, paddle.y, angleRad, paddle.halfW, paddle.halfH);
-  if (!hit) return false;
-  if (ball.vy < 0) return false; // 下向きに移動中でなければ無視(すり抜け防止の誤反射回避)
+  if (!hit) return null;
+  if (ball.vy < 0) return null; // 下向きに移動中でなければ無視(すり抜け防止の誤反射回避)
+
+  const incomingSpeed = Math.hypot(ball.vx, ball.vy);
+  const dot = (paddle.vx || 0) * ball.vx + (paddle.vy || 0) * ball.vy;
+  const isCatchMotion = dot > 0;
+  const restitution = isCatchMotion ? BALL.paddleRestitutionCatch : BALL.paddleRestitutionNormal;
+  let outSpeed = incomingSpeed * restitution;
+  if (!isCatchMotion) outSpeed = Math.max(outSpeed, BALL.minBounceSpeed);
+
+  pushOut(ball, hit.normal, hit.penetration + 0.5);
+
+  if (outSpeed < BALL.catchSpeedThreshold) {
+    ball.vx = 0;
+    ball.vy = 0;
+    ball.stuck = true;
+    return 'caught';
+  }
+
   const local = toLocal(ball.x, ball.y, paddle.x, paddle.y, angleRad);
   const ratio = clamp(local.x / paddle.halfW, -1, 1);
   const outAngleDeg = -90 + ratio * BALL.maxBounceAngleDeg;
   const rad = (outAngleDeg * Math.PI) / 180;
   const dir = toWorldDir(Math.cos(rad), Math.sin(rad), angleRad);
-  ball.vx = dir.x * BALL.speed;
-  ball.vy = dir.y * BALL.speed;
+  ball.vx = dir.x * outSpeed;
+  ball.vy = dir.y * outSpeed;
   clampHorizontalAngle(ball);
-  pushOut(ball, hit.normal, hit.penetration + 0.5);
-  return true;
+  return 'bounced';
 }
 
 // ── 1フレーム分のボール更新。発生イベントを配列で返す ────────────────
@@ -177,25 +208,38 @@ export function stepBall(ball, dt, paddle, targets, jammers, rings) {
   const events = [];
   if (ball.stuck) return events;
 
+  // 重力・空気抵抗(速度に比例した減衰)
+  ball.vy += BALL.gravity * dt;
+  const dragFactor = Math.max(0, 1 - BALL.drag * dt);
+  ball.vx *= dragFactor;
+  ball.vy *= dragFactor;
+
   ball.x += ball.vx * dt;
   ball.y += ball.vy * dt;
 
   // 壁(左右・上)
+  let wallHit = false;
   if (ball.x - ball.radius < WALL_MARGIN) {
     ball.x = WALL_MARGIN + ball.radius;
     ball.vx = Math.abs(ball.vx);
+    wallHit = true;
     events.push({ type: 'wallBounce' });
   } else if (ball.x + ball.radius > CANVAS_W - WALL_MARGIN) {
     ball.x = CANVAS_W - WALL_MARGIN - ball.radius;
     ball.vx = -Math.abs(ball.vx);
+    wallHit = true;
     events.push({ type: 'wallBounce' });
   }
   if (ball.y - ball.radius < WALL_MARGIN) {
     ball.y = WALL_MARGIN + ball.radius;
     ball.vy = Math.abs(ball.vy);
+    wallHit = true;
     events.push({ type: 'wallBounce' });
   }
-  if (events.some((e) => e.type === 'wallBounce')) clampHorizontalAngle(ball);
+  if (wallHit) {
+    ensureMinBounceSpeed(ball);
+    clampHorizontalAngle(ball);
+  }
 
   // 場外(下に落ちた)
   if (ball.y - ball.radius > CANVAS_H) {
@@ -204,7 +248,12 @@ export function stepBall(ball, dt, paddle, targets, jammers, rings) {
   }
 
   // パドル
-  if (collidePaddle(ball, paddle)) {
+  const paddleResult = collidePaddle(ball, paddle);
+  if (paddleResult === 'caught') {
+    events.push({ type: 'ballCaught' });
+    return events; // キャッチされた玉はこのフレームでは他と衝突しない
+  }
+  if (paddleResult === 'bounced') {
     events.push({ type: 'paddleBounce' });
   }
 
@@ -251,6 +300,5 @@ export function stepBall(ball, dt, paddle, targets, jammers, rings) {
     }
   }
 
-  ball.normalizeSpeed();
   return events;
 }

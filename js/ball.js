@@ -7,21 +7,13 @@ export class Ball {
     this.y = y;
     this.vx = 0;
     this.vy = 0;
-    this.stuck = true; // パドルに乗っている(発射前)
+    this.stuck = true; // パドルに乗っている(発射前、またはパドルにキャッチされた状態)
   }
 
   launch(angleDeg) {
     const rad = (angleDeg * Math.PI) / 180;
-    this.vx = Math.cos(rad) * BALL.speed;
-    this.vy = Math.sin(rad) * BALL.speed;
+    this.vx = Math.cos(rad) * BALL.launchSpeed;
+    this.vy = Math.sin(rad) * BALL.launchSpeed;
     this.stuck = false;
-  }
-
-  // 速度の向きを保ったまま、大きさ(速さ)を一定値に正規化する
-  normalizeSpeed() {
-    const s = Math.hypot(this.vx, this.vy) || 1;
-    const scale = BALL.speed / s;
-    this.vx *= scale;
-    this.vy *= scale;
   }
 }

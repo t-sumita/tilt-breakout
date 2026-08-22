@@ -129,6 +129,18 @@ export function drawBall(ctx, ball) {
   ctx.fill();
 }
 
+export function drawFireworks(ctx, particles) {
+  for (const p of particles) {
+    const alpha = Math.max(0, p.life / p.maxLife);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
 export function render(ctx, state) {
   clear(ctx);
   drawFrame(ctx);
@@ -137,4 +149,5 @@ export function render(ctx, state) {
   drawTargets(ctx, state.targets);
   drawPaddle(ctx, state.paddle);
   if (state.ball) drawBall(ctx, state.ball);
+  if (state.fireworks && state.fireworks.length) drawFireworks(ctx, state.fireworks);
 }

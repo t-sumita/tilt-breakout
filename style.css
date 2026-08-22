@@ -17,14 +17,32 @@ html, body {
 .wrap { max-width: 440px; margin: 0 auto; padding: 14px 12px 24px; }
 
 .hud {
-  display: flex;
-  justify-content: space-between;
   font-size: 13px;
   letter-spacing: 0.06em;
   padding: 0 4px 8px;
   color: var(--line);
 }
+.hud-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.hud-row + .hud-row { margin-top: 4px; }
 .hud b { color: var(--text); font-weight: 700; margin-left: 4px; }
+
+.config-btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line-dim);
+  color: var(--line);
+  font-size: 13px;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.config-btn:hover { border-color: var(--line); color: var(--text); }
 
 .canvas-wrap { position: relative; }
 canvas {
@@ -55,6 +73,82 @@ canvas {
   border: 1px solid var(--line);
   padding: 10px 16px;
   background: rgba(15, 22, 48, 0.85);
+}
+
+.config-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(11, 16, 32, 0.72);
+  z-index: 20;
+}
+.config-panel[hidden] { display: none; }
+.config-panel-inner {
+  position: relative;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 0 16px rgba(127, 227, 212, 0.25);
+  padding: 18px 16px 14px;
+}
+.config-panel-inner h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: var(--line);
+}
+.config-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line-dim);
+  color: var(--text);
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+}
+.config-close:hover { border-color: var(--line); color: var(--line); }
+.config-field {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+.config-field span {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  color: var(--line);
+}
+.config-field b { color: var(--text); }
+.config-field input[type="range"] {
+  width: 100%;
+  accent-color: var(--line);
+}
+.config-field select {
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line-dim);
+  padding: 5px 6px;
+  font-family: inherit;
+  font-size: 12px;
+}
+.config-note {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: #7d94a8;
+  line-height: 1.5;
 }
 
 .hint {
