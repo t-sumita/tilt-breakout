@@ -11,7 +11,7 @@ export function createStage3() {
   const targets = [
     {
       shape: 'circle', x: RING_CX, y: RING_CY, r: CORE_RADIUS,
-      hp: 1, maxHp: 1, revealOnHit: true, revealed: false, randomHp: [10, 99], isCore: true,
+      hp: 1, maxHp: 1, revealOnHit: true, revealed: false, randomHp: [1, 9], isCore: true,
     },
   ];
 

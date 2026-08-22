@@ -128,11 +128,25 @@ function collide(ball, obj) {
   return null;
 }
 
+// 水平から5度未満の角度になった場合、速さを変えずに角度成分だけ5度に補正する。
+const MIN_ANGLE_FROM_HORIZONTAL = (5 * Math.PI) / 180;
+function clampHorizontalAngle(ball) {
+  const speed = Math.hypot(ball.vx, ball.vy);
+  if (speed < 1e-6) return;
+  const angle = Math.asin(clamp(Math.abs(ball.vy) / speed, -1, 1));
+  if (angle >= MIN_ANGLE_FROM_HORIZONTAL) return;
+  const vxSign = ball.vx >= 0 ? 1 : -1;
+  const vySign = ball.vy >= 0 ? 1 : -1;
+  ball.vx = vxSign * speed * Math.cos(MIN_ANGLE_FROM_HORIZONTAL);
+  ball.vy = vySign * speed * Math.sin(MIN_ANGLE_FROM_HORIZONTAL);
+}
+
 function reflect(ball, normal) {
   const dot = ball.vx * normal.x + ball.vy * normal.y;
   if (dot >= 0) return; // すでに離れていく向きなら反射しない(二重反射防止)
   ball.vx -= 2 * dot * normal.x;
   ball.vy -= 2 * dot * normal.y;
+  clampHorizontalAngle(ball);
 }
 
 function pushOut(ball, normal, penetration) {
@@ -153,6 +167,7 @@ function collidePaddle(ball, paddle) {
   const dir = toWorldDir(Math.cos(rad), Math.sin(rad), angleRad);
   ball.vx = dir.x * BALL.speed;
   ball.vy = dir.y * BALL.speed;
+  clampHorizontalAngle(ball);
   pushOut(ball, hit.normal, hit.penetration + 0.5);
   return true;
 }
@@ -180,6 +195,7 @@ export function stepBall(ball, dt, paddle, targets, jammers, rings) {
     ball.vy = Math.abs(ball.vy);
     events.push({ type: 'wallBounce' });
   }
+  if (events.some((e) => e.type === 'wallBounce')) clampHorizontalAngle(ball);
 
   // 場外(下に落ちた)
   if (ball.y - ball.radius > CANVAS_H) {
