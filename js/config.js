@@ -1,7 +1,7 @@
 // Tilt Breakout — アプリケーション設定(版の単一の源)
 // このファイルの APP_VERSION が唯一の版定義。他ファイルへの版の直書きは禁止。
 
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.6.1';
 
 export const CANVAS_W = 400;
 export const CANVAS_H = 560;
@@ -40,14 +40,14 @@ export const BALL = {
   launchAngleDeg: -68,            // 発射時の基準角度(上方向、パドル傾き最大時)
   launchSpeed: 400,                // px/s。発射時の基準速度
   gravity: 120,                    // px/s^2。下方向への重力加速度
-  drag: 0.2,                       // 1秒あたりの速度比例減衰係数(空気抵抗)
+  drag: 0.4,                       // 1秒あたりの速度比例減衰係数(空気抵抗)
   // 壁/ブロック/ジャマー/パドル通常反発の直後に保証する最低速度。
   // launchSpeed と同値にすることで、画面のどの位置で反発しても
   // 重力に負けず最上部まで届く勢いを維持できるようにしている。
   minBounceSpeed: 400,
   paddleRestitutionNormal: 1.0,   // パドル通常反発時の反発係数
   paddleRestitutionCatch: 0.25,   // パドル「受け」動作時の反発係数(大きく減速させる)
-  catchSpeedThreshold: 110,        // この速度未満でパドルに接触するとキャッチされる(px/s)
+  catchSpeedThreshold: 100,        // この速度未満でパドルに接触するとキャッチされる(px/s)
 };
 
 // ── ゲーム全体設定(Config画面から実行時に変更可能) ──────────────────

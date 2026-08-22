@@ -61,15 +61,23 @@ export function createStage2() {
     { shape: 'rect', angle: 0, x: CB_X + 70, y: CB_Y + 130, baseX: CB_X + 70, baseY: CB_Y + 130, halfW: 35, halfH: 6, motion: { type: 'slide', axis: 'x', amplitude: 40, speed: 0.9, phase: Math.PI } },
   );
 
-  // 下部: 通常ブロックとジャマーが交互混在する横列2段(段ごとにチェッカー柄反転)
-  // 各段6列にしてプレイフィールド中央に配置する(中心揃えの計算式のため列数を減らすだけで自動的に中央に揃う)。
+  // 下部: 通常ブロックとジャマーが交互混在する横列2段(段ごとにチェッカー柄反転)。
+  // 左右3列ずつ(2段でそれぞれ6個)に分け、中央に1ブロック分の空きを作る。
+  // 実装上は7列ぶんの仮想グリッドを使い、中央(index=3)のみ空けることで
+  // 「通常の連結ギャップ+1ブロック分の空白+通常の連結ギャップ」を再現している。
   const cols = 6, bw = 34, bh = 14, gap = 6;
-  const rowW = cols * bw + (cols - 1) * gap;
+  const virtualCols = cols + 1;
+  const centerIdx = Math.floor(virtualCols / 2);
+  const rowW = virtualCols * bw + (virtualCols - 1) * gap;
   const startX = -rowW / 2 + bw / 2;
   [160, 186].forEach((y, ri) => {
-    for (let c = 0; c < cols; c++) {
-      const rect = { shape: 'rect', angle: 0, x: CB_X + startX + c * (bw + gap), y: CB_Y + y, halfW: bw / 2, halfH: bh / 2 };
-      const isTarget = ri === 0 ? c % 2 === 0 : c % 2 !== 0;
+    for (let vc = 0; vc < virtualCols; vc++) {
+      if (vc === centerIdx) continue; // 中央1ブロック分の空き
+      const isRight = vc > centerIdx;
+      const c = isRight ? vc - 1 : vc; // 元の6列基準(0-5)でのインデックス
+      const rect = { shape: 'rect', angle: 0, x: CB_X + startX + vc * (bw + gap), y: CB_Y + y, halfW: bw / 2, halfH: bh / 2 };
+      let isTarget = ri === 0 ? c % 2 === 0 : c % 2 !== 0;
+      if (isRight) isTarget = !isTarget; // 右側3列はブロックとジャマーの位置を入れ替える
       if (isTarget) targets.push({ ...rect, hp: 1, maxHp: 1 });
       else jammers.push(rect);
     }
