@@ -16,8 +16,9 @@ export function createStage2() {
     hp: 24, maxHp: 24, revealOnHit: true, revealed: false, isSquare: true,
   });
 
-  // 凹ブラケット(上下キャップ+側面の脚。中央30pxの帯だけが唯一の横穴)
-  const BR_LT = 16, BR_CAP = 16, BR_LEG = 20;
+  // 凹ブラケット(上下キャップ+側面の脚。中央42pxの帯だけが唯一の横穴)
+  // 脚の長さは片側6pxずつ短縮(20→14)し、穴の高さを玉1個分(直径12px)広げた(30→42px)。
+  const BR_LT = 16, BR_CAP = 16, BR_LEG = 14;
   const rectFromCorners = (x0, y0, x1, y1) => ({
     shape: 'rect', angle: 0,
     x: CB_X + (x0 + x1) / 2, y: CB_Y + (y0 + y1) / 2,

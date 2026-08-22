@@ -19,13 +19,16 @@ export function createStage1() {
 
   // 2列目: 空
 
-  // 3列目: 通常ブロックと破壊不能ジャマーを左右対称に均等混在配置
+  // 3列目: 通常ブロックと破壊不能ジャマーを左右対称に均等混在配置。
+  // ただし最も外側(左右端)は破壊不能ジャマーではなく、1列目と同じハードブロック
+  // (3ヒットで破壊・ドット密度濃いめ)にする。内側寄りの2つは破壊不能ジャマーのまま維持。
   const y2 = anchorY + 2 * rowStep;
+  const outerBucket = Math.floor((cols - 1) / 2);
   for (let c = 0; c < cols; c++) {
     const bucket = Math.floor(Math.abs(c - (cols - 1) / 2));
-    const isTarget = bucket % 2 === 0;
     const rect = { shape: 'rect', x: colX(c), y: y2, angle: 0, halfW: bw / 2, halfH: bh / 2 };
-    if (isTarget) targets.push({ ...rect, hp: 1, maxHp: 1, dense: false });
+    if (bucket === outerBucket) targets.push({ ...rect, hp: 3, maxHp: 3, dense: true });
+    else if (bucket % 2 === 0) targets.push({ ...rect, hp: 1, maxHp: 1, dense: false });
     else jammers.push(rect);
   }
 
