@@ -2,7 +2,7 @@
 // ゲームの状態遷移そのものには関与せず、開閉/ステージジャンプはコールバックで通知する。
 import { PADDLE, BALL, GAME, CONFIG_LIMITS } from './config.js';
 
-const FIELDS = [
+const RAW_FIELDS = [
   {
     id: 'paddleMoveSpeedMultiplier',
     limits: CONFIG_LIMITS.paddleMoveSpeedMultiplier,
@@ -47,11 +47,19 @@ const FIELDS = [
   },
 ];
 
+// モジュール読み込み直後(=ユーザー操作が発生する前)の値を config.js の既定値として固定する。
+const FIELDS = RAW_FIELDS.map((f) => ({ ...f, defaultValue: f.get() }));
+
 export function initConfigPanel({ onOpen, onClose, onStageSelect } = {}) {
   const btn = document.getElementById('config-btn');
   const panel = document.getElementById('config-panel');
   const closeBtn = document.getElementById('config-close');
+  const resetBtn = document.getElementById('config-reset');
   const stageSelect = document.getElementById('cfg-stageSelect');
+
+  function renderLabel(f) {
+    f.label.textContent = `${f.format(f.get())} (既定値: ${f.format(f.defaultValue)})`;
+  }
 
   const boundFields = FIELDS.map((f) => {
     const input = document.getElementById(`cfg-${f.id}`);
@@ -59,17 +67,18 @@ export function initConfigPanel({ onOpen, onClose, onStageSelect } = {}) {
     input.min = String(f.limits.min);
     input.max = String(f.limits.max);
     input.step = String(f.limits.step);
+    const bound = { ...f, input, label };
     input.addEventListener('input', () => {
       f.set(Number(input.value));
-      label.textContent = f.format(f.get());
+      renderLabel(bound);
     });
-    return { ...f, input, label };
+    return bound;
   });
 
   function syncFromConfig() {
     for (const f of boundFields) {
       f.input.value = String(f.get());
-      f.label.textContent = f.format(f.get());
+      renderLabel(f);
     }
   }
 
@@ -81,6 +90,13 @@ export function initConfigPanel({ onOpen, onClose, onStageSelect } = {}) {
   closeBtn.addEventListener('click', () => {
     panel.hidden = true;
     if (onClose) onClose();
+  });
+  resetBtn.addEventListener('click', () => {
+    for (const f of boundFields) {
+      f.set(f.defaultValue);
+      f.input.value = String(f.defaultValue);
+      renderLabel(f);
+    }
   });
   stageSelect.addEventListener('change', () => {
     if (onStageSelect) onStageSelect(Number(stageSelect.value));

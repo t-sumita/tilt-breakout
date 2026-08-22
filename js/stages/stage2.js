@@ -62,7 +62,8 @@ export function createStage2() {
   );
 
   // 下部: 通常ブロックとジャマーが交互混在する横列2段(段ごとにチェッカー柄反転)
-  const cols = 8, bw = 34, bh = 14, gap = 6;
+  // 各段6列にしてプレイフィールド中央に配置する(中心揃えの計算式のため列数を減らすだけで自動的に中央に揃う)。
+  const cols = 6, bw = 34, bh = 14, gap = 6;
   const rowW = cols * bw + (cols - 1) * gap;
   const startX = -rowW / 2 + bw / 2;
   [160, 186].forEach((y, ri) => {

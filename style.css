@@ -144,6 +144,21 @@ canvas {
   font-family: inherit;
   font-size: 12px;
 }
+.config-reset {
+  display: block;
+  width: 100%;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line-dim);
+  color: var(--text);
+  padding: 8px;
+  margin-top: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+.config-reset:hover { border-color: var(--line); color: var(--line); }
 .config-note {
   margin: 6px 0 0;
   font-size: 10px;
