@@ -1,22 +1,25 @@
 # STATUS.md — 作業状況
 
 ## 現在のバージョン
-`0.1.0`
+`0.2.0`
 
 ## 最終更新
 2026-08-22
 
 ## 状態
-- [x] リポジトリ初期化(ローカル、`main` ブランチ)
+- [x] リポジトリ初期化・GitHub リポジトリ作成・初回コミット・push
 - [x] コアゲーム実装(config/mathutils/ball/physics/stages/input/renderer/game/main)
-- [x] サイト共通部品の配線(バッジ/フッター/manifest/favicon プレースホルダ/Cloudflare Analytics プレースホルダ)
+- [x] サイト共通部品の配線(バッジ/フッター/manifest/favicon/Cloudflare Analytics プレースホルダ)
 - [x] 3点セット(CLAUDE.md/STATUS.md/PLAN.md)作成
 - [x] `.claude/settings.json` 作成(acceptEdits + git push 系拒否)
 - [x] ローカルサーバー+Playwright での動作確認(タイトル→発射→プレイ→パドル反射→スコア加算まで確認、エラーなし)
-- [ ] GitHub リポジトリ作成・初回コミット・push(このセッションの残タスク)
-- [ ] GitHub Pages 公開
+- [x] GitHub Pages 公開(`https://tilt-breakout.subutomo.dev/`、`CNAME` 追加済み)
+- [x] favicon/apple-touch-icon を本番デザインへ差し替え
+- [x] パドル移動速度を3倍化
+- [x] ステージ2の回転十字ジャマーの中央正方形からの距離を玉1個分拡大
 
 ## 直近の変更
+- `0.2.0`: GitHub Pages 公開に伴い `CNAME`(`tilt-breakout.subutomo.dev`)を追加し CLAUDE.md の公開URLを記入。favicon をプレースホルダの全円リングから「開口(ギャップ)リング+パドル+ボール」の本番デザインへ差し替え。パドル移動速度をポインタ/タッチ/キーボードの全入力方式で一律3倍化(`PADDLE.moveSpeedMultiplier`)。ステージ2の回転十字ジャマーを中央正方形からさらに玉1個分(12px)遠ざけ、クリアランスを23px→35pxに拡大。
 - `0.1.0`: 初回実装。`docs/reference/stage-mock.html` を正として、3ステージ(クラシック配置/凹型ブラケット要塞/三重回転リング)・2Dパドル操作(傾き連動・スマホ2本指対応)・スコア/ライフ/ステージ進行の状態機械を実装。Subutomo 共通フッター/バッジ/manifest/favicon(プレースホルダ)を配線。
 
 ## 動作確認メモ
@@ -30,7 +33,7 @@
 
 1. **`config/subutomo-sites.json` 台帳への自エントリ追加を見送った。** qed-arcade からそのままコピーし、`tilt-breakout` の項目は追加していない。台帳の正本は `subutomo-template` 側にあるため、勝手に改変せず現状維持を選択。追加が必要なら別途判断すること。
 2. **`scripts/drive.mjs`(Playwright 動作確認ドライバ)はコミット対象から除外し `.gitignore` に追加した。** このマシン固有の絶対パス(`C:/Users/subut/AppData/Local/npm-cache/_npx/...`)をハードコードしており、他環境では動かないため。`scripts/shots/`(スクリーンショット)も同様にローカル専用として除外。
-3. **favicon/apple-touch-icon はプレースホルダ。** Pillow 非依存の自前 PNG エンコーダ(`scripts/gen_favicon.py`)でインディゴ×シアンのリング+パドル+ボールを描いた簡易デザインを生成。本番デザインへの差し替えが必要(PLAN.md フェーズ3に記載)。
+3. ~~favicon/apple-touch-icon はプレースホルダ~~ → **`0.2.0` で本番デザインへ差し替え済み。** Pillow 非依存の自前 PNG エンコーダ(`scripts/gen_favicon.py`)は維持しつつ、意匠をステージ3の「回転リングの開口(ギャップ)」を象徴する開いたリング+パドル+ボールに変更(判断ログ14参照)。
 4. **Cloudflare Web Analytics のトークンはプレースホルダ(`PLACEHOLDER_TOKEN_REGISTER_LATER`)のまま。** 実トークンは Cloudflare 側での登録が必要なため後日差し替え(PLAN.md フェーズ3に記載)。
 5. **版定数名は `APP_VERSION` を採用。** ユーザー指示により qed-arcade の `VERSION` ではなく talk-prompter/asset-tl 系の命名に統一。`js/config.js` 単一箇所で管理。
 6. **フィードバックフォームの `entry.2036331541` 値は `TILT BREAKOUT (tilt)` とした。** 「tilt-breakout であることが分かる相当の値」という指示に対する具体的な文字列の選定。
@@ -41,3 +44,6 @@
 11. **ステージ2の回転十字ジャマーと中央スクエアの最小クリアランス(≥20px)は、アーム最大伸長時の半径とブラケットギャップ位置の幾何計算で確保されるよう定数を設定。** モックの数値(`cross jammer x:∓75, size:34` 等)をそのまま採用しつつ、「クリア不能な配置を作らない」という最重要原則に沿って値を検証済み(詳細な再検証はフェーズ3以降の目視確認で継続)。
 12. **ステージ3の中央コアHPは初回ヒット時に 10〜99 のランダム2桁整数を確定させ、以後固定する方式。** 「?」表示から実数値表示への切り替えタイミングをヒット時点と解釈。
 13. **README は今回作成していない。** ユーザー指示は CLAUDE.md/STATUS.md/PLAN.md の3点セットのみだったため、README の新規作成は範囲外と判断し見送った。
+14. **(0.2.0) favicon の意匠を「全円リング」から「開口(ギャップ)リング」へ変更。** 「本番用に差し替えて」という指示に対し、具体的なデザイン方針の指定がなかったため、ステージ3の回転リングのギャップ機構をより直接的に象徴する意匠を自己判断で採用(`assets/favicon.svg` / `scripts/gen_favicon.py`)。色調(インディゴ×シアン)とパドル+ボールの構図要素は既存踏襲。
+15. **(0.2.0) パドル速度3倍化は、ポインタ/タッチのドラッグ量にも一律適用。** 「パドルのスピードを3倍に」という指示はキーボードのみとも読めたが、入力方式ごとに体感速度が食い違わないよう `PADDLE.moveSpeedMultiplier` を新設し、ドラッグ量(dx/dy)とキーボード基準速度の両方に同じ倍率を掛ける方式に統一した。
+16. **(0.2.0) 「玉一つ分」はボール直径(`BALL.radius*2`=12px)と解釈。** ステージ2の回転十字ジャマーのオフセットに +12px を加算(75→87)。半径(6px)ではなく直径で解釈した方が「玉一個分の実体の大きさ」により近いと判断。

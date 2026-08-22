@@ -43,7 +43,7 @@ export class PaddleInput {
       this.pointers.set(e.pointerId, cur);
       if (this.pointers.size === 1) {
         const dx = cur.x - prev.x, dy = cur.y - prev.y;
-        const f = this._speedFactor(this.y);
+        const f = this._speedFactor(this.y) * PADDLE.moveSpeedMultiplier;
         this.x = clamp(this.x + dx * f, PADDLE.xMin, PADDLE.xMax);
         this.y = clamp(this.y + dy * f, PADDLE.yMin, PADDLE.yMax);
       } else if (this.pointers.size >= 2) {
@@ -66,7 +66,7 @@ export class PaddleInput {
   // キーボードでの連続移動・傾き変化を dt 分だけ適用する
   update(dt) {
     const f = this._speedFactor(this.y);
-    const moveSpeed = 260 * f; // px/s
+    const moveSpeed = PADDLE.keyMoveSpeedBase * PADDLE.moveSpeedMultiplier * f; // px/s
     if (this.keys.has('ArrowLeft')) this.x -= moveSpeed * dt;
     if (this.keys.has('ArrowRight')) this.x += moveSpeed * dt;
     if (this.keys.has('ArrowUp')) this.y -= moveSpeed * dt;

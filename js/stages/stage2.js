@@ -1,7 +1,7 @@
 // ステージ2: 固定障害物面(非リング面)
 // 座標・寸法は docs/reference/stage-mock.html のブラケット/クロス/三角/丸/下段配置を
 // そのまま踏襲する(特に凹ブラケットと回転十字ジャマーの位置関係は変更しないこと)。
-import { CX } from '../config.js';
+import { CX, BALL } from '../config.js';
 
 const CB_X = CX;      // ブラケット構造の中心 x
 const CB_Y = 210;      // ブラケット構造の中心 y(モックの cyB)
@@ -32,10 +32,11 @@ export function createStage2() {
     rectFromCorners(-35 - BR_LT, -65 - BR_LEG, -35, -65),                // 下・左脚
   );
 
-  // 穴の外側、玉2〜3個分ほど離れた位置(ブラケット中心から半径75程度)の回転十字ジャマー
+  // 穴の外側、中央の正方形からさらに玉1個分(直径 BALL.radius*2)離した位置の回転十字ジャマー
+  const CROSS_OFFSET = 75 + BALL.radius * 2;
   jammers.push(
-    { shape: 'cross', x: CB_X - 75, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: 1.3 } },
-    { shape: 'cross', x: CB_X + 75, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: -1.3 } },
+    { shape: 'cross', x: CB_X - CROSS_OFFSET, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: 1.3 } },
+    { shape: 'cross', x: CB_X + CROSS_OFFSET, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: -1.3 } },
   );
 
   // 穴の外にある三角ジャマー(中心寄りの位置で回転)

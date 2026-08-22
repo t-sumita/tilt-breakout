@@ -8,7 +8,7 @@
 | 目的 | 回転リング×固定障害物×ブロック崩しを組み合わせたブラウザゲーム |
 | リポジトリ | t-sumita/tilt-breakout |
 | ブランチ | main |
-| 公開URL | (GitHub Pages 有効化後に記入) |
+| 公開URL | https://tilt-breakout.subutomo.dev/ |
 
 ---
 

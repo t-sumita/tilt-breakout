@@ -1,7 +1,7 @@
 // Tilt Breakout — アプリケーション設定(版の単一の源)
 // このファイルの APP_VERSION が唯一の版定義。他ファイルへの版の直書きは禁止。
 
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.2.0';
 
 export const CANVAS_W = 400;
 export const CANVAS_H = 560;
@@ -26,6 +26,8 @@ export const PADDLE = {
   xMin: 30 + 5,
   xMax: CANVAS_W - 30 - 5,
   minSpeedFactor: 0.4,      // 上限付近での速度係数(下限=1.0)
+  moveSpeedMultiplier: 3,   // 移動速度の倍率(ポインタ/タッチのドラッグ量・キーボード移動速度の両方に適用)
+  keyMoveSpeedBase: 260,    // px/s(キーボード移動速度の基準値。実速度は上の倍率を掛けた値)
   maxTiltDeg: 20,
   tiltGestureGain: 0.15,    // 2本指の高さ差 → 傾き角の係数
   tiltKeyRateDegPerSec: 60, // キーボードでの傾き変化速度

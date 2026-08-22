@@ -1,7 +1,7 @@
-"""Placeholder favicon generator (pure stdlib, no Pillow).
-Draws: indigo bg, a cyan ring (rotating-ring motif) and a tilted paddle bar.
+"""Production favicon generator (pure stdlib, no Pillow).
+Draws: indigo background, a cyan rotating ring with a gap (stage3 の回転リング
+ギャップを象徴)+ 傾いたパドルバー + ボール。assets/favicon.svg と対の意匠。
 Run: python scripts/gen_favicon.py
-Output icons are intentionally simple placeholders; replace with real art later.
 """
 import struct
 import zlib
@@ -12,26 +12,36 @@ BG = (0x0b, 0x10, 0x20)
 LINE = (0x7f, 0xe3, 0xd4)
 BALL = (0xdf, 0xf7, 0xf2)
 
+# リングの開口(ギャップ)角度レンジ(度、0°=右方向, 反時計回り基準の atan2 系)
+GAP_START_DEG = 15
+GAP_END_DEG = 75
+
 
 def make_png(path, size):
     cx = cy = size / 2
-    ring_r = size * 0.34
-    ring_th = max(1.4, size * 0.055)
-    paddle_hw = size * 0.30
-    paddle_hh = max(1.2, size * 0.045)
-    tilt = math.radians(-18)
-    paddle_cy = size * 0.66
-    ball_r = max(1.2, size * 0.06)
-    ball_x = cx + size * 0.16
-    ball_y = size * 0.30
+    ring_r = size * 0.328
+    ring_th = size * 0.072
+    paddle_hw = size * 0.3125
+    paddle_hh = max(1.4, size * 0.053)
+    tilt = math.radians(-16)
+    paddle_cy = size * 0.6875
+    ball_r = max(1.4, size * 0.066)
+    ball_cx, ball_cy = size * 0.68, size * 0.273
 
     def blend(under, over, a):
         return tuple(round(u + (o - u) * a) for u, o in zip(under, over))
 
     def coverage_ring(px, py):
-        d = math.hypot(px - cx, py - cy)
+        dx, dy = px - cx, py - cy
+        d = math.hypot(dx, dy)
         dist_to_line = abs(d - ring_r)
-        return max(0.0, min(1.0, 1.0 - (dist_to_line - ring_th / 2)))
+        cov = max(0.0, min(1.0, 1.0 - (dist_to_line - ring_th / 2)))
+        if cov <= 0.0:
+            return 0.0
+        ang = math.degrees(math.atan2(-dy, dx)) % 360
+        if GAP_START_DEG <= ang <= GAP_END_DEG:
+            return 0.0
+        return cov
 
     def coverage_paddle(px, py):
         dx, dy = px - cx, py - paddle_cy
@@ -44,7 +54,7 @@ def make_png(path, size):
         return max(0.0, 1.0 - math.hypot(ox, oy))
 
     def coverage_ball(px, py):
-        d = math.hypot(px - ball_x, py - ball_y)
+        d = math.hypot(px - ball_cx, py - ball_cy)
         return max(0.0, min(1.0, 1.0 - (d - ball_r)))
 
     rows = []
