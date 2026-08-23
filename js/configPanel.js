@@ -50,12 +50,13 @@ const RAW_FIELDS = [
 // モジュール読み込み直後(=ユーザー操作が発生する前)の値を config.js の既定値として固定する。
 const FIELDS = RAW_FIELDS.map((f) => ({ ...f, defaultValue: f.get() }));
 
-export function initConfigPanel({ onOpen, onClose, onStageSelect } = {}) {
+export function initConfigPanel({ onOpen, onClose, onStageSelect, onMaintenanceUnlock } = {}) {
   const btn = document.getElementById('config-btn');
   const panel = document.getElementById('config-panel');
   const closeBtn = document.getElementById('config-close');
   const resetBtn = document.getElementById('config-reset');
   const stageSelect = document.getElementById('cfg-stageSelect');
+  const maintenanceBtn = document.getElementById('config-maintenance');
 
   function renderLabel(f) {
     f.label.textContent = `${f.format(f.get())} (既定値: ${f.format(f.defaultValue)})`;
@@ -100,5 +101,11 @@ export function initConfigPanel({ onOpen, onClose, onStageSelect } = {}) {
   });
   stageSelect.addEventListener('change', () => {
     if (onStageSelect) onStageSelect(Number(stageSelect.value));
+  });
+  maintenanceBtn.addEventListener('click', () => {
+    const answer = window.prompt('はだかのブタがいる');
+    if (answer != null && answer.trim().toLowerCase() === 'subuta') {
+      if (onMaintenanceUnlock) onMaintenanceUnlock();
+    }
   });
 }

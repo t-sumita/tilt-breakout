@@ -1,4 +1,4 @@
-import { APP_VERSION, STAGE_COUNT } from './config.js';
+import { APP_VERSION, STAGE_COUNT, GAME } from './config.js';
 import { PaddleInput } from './input.js';
 import { Game } from './game.js';
 import { render } from './renderer.js';
@@ -25,6 +25,7 @@ const MESSAGES = {
   serve: 'TAP / SPACE で発射',
   stageClear: 'STAGE CLEAR — TAP で次へ',
   gameOver: 'GAME OVER — TAP でリトライ',
+  demo: 'DEMO PLAY — 操作で終了',
 };
 
 function formatTime(sec) {
@@ -35,6 +36,9 @@ function formatTime(sec) {
 }
 
 function overlayMessage() {
+  if (game.easterEgg.active) {
+    return 'CONGRATULATIONS!';
+  }
   if (game.state === 'win') {
     return game.allClear ? 'CONGRATULATIONS! — TAP でタイトルへ' : 'GAME CLEAR — TAP でタイトルへ';
   }
@@ -66,13 +70,40 @@ initConfigPanel({
     configPanelEl.hidden = true;
     game.paused = false;
   },
+  onMaintenanceUnlock: () => {
+    configPanelEl.hidden = true;
+    game.paused = false;
+    game.playEasterEggDemo();
+  },
 });
+
+// ── アイドル時のデモプレイ(アトラクトモード)── タイトル画面で無操作の時間を計測し、
+// 一定秒数(GAME.idleDemoDelaySec)経過したら game.startDemo() を呼ぶ。
+// PaddleInput の onTap は Space/Enter・単一ポインタのみを拾うため、矢印キー等も含めた
+// 「何らかの操作」を検知する専用のグローバルリスナーをここで別途持つ。
+let idleSeconds = 0;
+function markInteraction() {
+  idleSeconds = 0;
+  if (game.state === 'demo') game.stopDemo();
+}
+window.addEventListener('pointerdown', markInteraction);
+window.addEventListener('keydown', markInteraction);
 
 let lastT = 0;
 function loop(t) {
   const dt = lastT ? Math.min((t - lastT) / 1000, 1 / 30) : 0;
   lastT = t;
   const elapsed = t / 1000;
+
+  if (game.state === 'title' && !game.paused) {
+    idleSeconds += dt;
+    if (idleSeconds >= GAME.idleDemoDelaySec) {
+      idleSeconds = 0;
+      game.startDemo();
+    }
+  } else {
+    idleSeconds = 0;
+  }
 
   paddleInput.update(dt);
   game.update(dt, elapsed);

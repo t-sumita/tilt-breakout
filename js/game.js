@@ -1,6 +1,6 @@
 // ゲームの状態遷移(タイトル/発射待ち/プレイ中/ステージクリア/ゲームオーバー/勝利)を
 // 管理する。物理は physics.js、描画は renderer.js に委譲する。
-import { PADDLE, BALL, GAME, STAGE_COUNT, SCORE } from './config.js';
+import { PADDLE, BALL, GAME, STAGE_COUNT, SCORE, CX } from './config.js';
 import { Ball } from './ball.js';
 import { updateMotion, stepBall } from './physics.js';
 import { createStage1 } from './stages/stage1.js';
@@ -8,6 +8,10 @@ import { createStage2 } from './stages/stage2.js';
 import { createStage3 } from './stages/stage3.js';
 import { loadHighScore, saveHighScore } from './highscore.js';
 import { Fireworks } from './fireworks.js';
+import { clamp, randInt } from './mathutils.js';
+
+const DEMO_PADDLE_FOLLOW_SPEED = 260; // px/s。デモプレイAIがボールを追う速度
+const EASTER_EGG_DURATION_SEC = 6;
 
 const STAGE_BUILDERS = [createStage1, createStage2, createStage3];
 
@@ -22,7 +26,7 @@ function scoreValueFor(target) {
 export class Game {
   constructor(paddleInput) {
     this.paddleInput = paddleInput;
-    this.state = 'title'; // title | serve | playing | stageClear | gameOver | win
+    this.state = 'title'; // title | serve | playing | stageClear | gameOver | win | demo
     this.stageIndex = 0;
     this.lives = GAME.livesStart;
     this.score = 0;
@@ -36,6 +40,11 @@ export class Game {
     this.ball = new Ball(0, 0);
     this.fireworks = new Fireworks();
     this.onHudChange = null;
+    // 隠しコマンド(メンテナンス合言葉)による花火演出のみの再現。実際のオールクリア記録には一切関与しない。
+    this.easterEgg = { active: false, timer: 0 };
+    // アイドル時のデモプレイ。実プレイの state/stageData/ball/score/lives とは完全に独立させ、
+    // デモの進行が本当の記録(スコア/ハイスコア/ステージクリア状態)へ影響しないようにする。
+    this.demo = null;
   }
 
   _hud() {
@@ -64,6 +73,17 @@ export class Game {
   }
 
   handleTap() {
+    if (this.easterEgg.active) {
+      // 演出中のタップは実操作へ波及させず、演出を静かに終わらせるだけにする
+      this.easterEgg.active = false;
+      this.fireworks.clear();
+      this._hud();
+      return;
+    }
+    if (this.state === 'demo') {
+      this.stopDemo();
+      return;
+    }
     if (this.state === 'title') {
       this._startRun();
     } else if (this.state === 'serve' || (this.state === 'playing' && this.ball.stuck)) {
@@ -111,8 +131,99 @@ export class Game {
     }
   }
 
+  // 隠しコマンド用: 既存のオールクリア花火演出だけを再現する(state/score/highScore/allClear には触れない)
+  playEasterEggDemo() {
+    this.fireworks.clear();
+    this.easterEgg.active = true;
+    this.easterEgg.timer = EASTER_EGG_DURATION_SEC;
+    this._hud();
+  }
+
+  // タイトル画面が一定時間操作されなかった際のアトラクトモード。
+  // 実プレイの state/stageData/ball/score/lives/timeRemaining には一切触れず、
+  // 専用の this.demo オブジェクトだけで完結させる。
+  startDemo() {
+    if (this.state !== 'title') return;
+    const stageIndex = randInt(0, STAGE_COUNT - 1);
+    const paddle = { x: CX, y: PADDLE.yMax, tilt: 0, halfW: PADDLE.halfW, halfH: PADDLE.halfH, vx: 0, vy: 0 };
+    this.demo = {
+      stageIndex,
+      stageData: STAGE_BUILDERS[stageIndex](),
+      paddle,
+      ball: new Ball(paddle.x, paddle.y - paddle.halfH - BALL.radius - 1),
+    };
+    this._launchDemoBall();
+    this.state = 'demo';
+    this._hud();
+  }
+
+  stopDemo() {
+    if (this.state !== 'demo') return;
+    this.demo = null;
+    this.state = 'title';
+    this._hud();
+  }
+
+  _launchDemoBall() {
+    const spread = 90 + BALL.launchAngleDeg;
+    const angleDeg = -90 + (Math.random() * 2 - 1) * spread;
+    this.demo.ball.launch(angleDeg);
+  }
+
+  _updateDemo(dt, elapsed) {
+    const { stageData, paddle, ball } = this.demo;
+    updateMotion(stageData.jammers, elapsed, dt);
+    if (stageData.rings) updateMotion(stageData.rings, elapsed, dt);
+
+    // 簡易AI: ボールのx座標を追いかけるだけのスクリプトされた動き
+    const targetX = clamp(ball.x, PADDLE.xMin, PADDLE.xMax);
+    const maxStep = DEMO_PADDLE_FOLLOW_SPEED * dt;
+    const dx = clamp(targetX - paddle.x, -maxStep, maxStep);
+    paddle.x = clamp(paddle.x + dx, PADDLE.xMin, PADDLE.xMax);
+    paddle.vx = dt > 0 ? dx / dt : 0;
+
+    if (ball.stuck) {
+      ball.x = paddle.x;
+      ball.y = paddle.y - paddle.halfH - ball.radius - 1;
+      this._launchDemoBall();
+      return;
+    }
+
+    const events = stepBall(ball, dt, paddle, stageData.targets, stageData.jammers, stageData.rings);
+    for (const ev of events) {
+      if (ev.type === 'ballLost') {
+        this.demo.ball = new Ball(paddle.x, paddle.y - paddle.halfH - BALL.radius - 1);
+        this._launchDemoBall();
+        return;
+      }
+    }
+
+    if (stageData.targets.every((t) => t.destroyed)) {
+      this.startDemo(); // 次のランダムなステージへ続ける
+    }
+  }
+
   update(dt, elapsed) {
     if (this.paused) return;
+
+    if (this.easterEgg.active) {
+      this.easterEgg.timer -= dt;
+      this.fireworks.update(dt);
+      if (Math.random() < dt * 1.5) {
+        this.fireworks.spawnBurst(40 + Math.random() * 320, 80 + Math.random() * 220);
+      }
+      if (this.easterEgg.timer <= 0) {
+        this.easterEgg.active = false;
+        this.fireworks.clear();
+        this._hud();
+      }
+    }
+
+    if (this.state === 'demo') {
+      this._updateDemo(dt, elapsed);
+      return;
+    }
+
     const paddle = this.paddleInput.getPaddle();
 
     if (this.state === 'win' && this.allClear) {
@@ -177,6 +288,16 @@ export class Game {
   }
 
   getRenderState() {
+    if (this.state === 'demo') {
+      return {
+        targets: this.demo.stageData.targets,
+        jammers: this.demo.stageData.jammers,
+        rings: this.demo.stageData.rings,
+        paddle: this.demo.paddle,
+        ball: this.demo.ball,
+        fireworks: this.fireworks.particles,
+      };
+    }
     return {
       targets: this.stageData.targets,
       jammers: this.stageData.jammers,

@@ -1,7 +1,7 @@
 // Tilt Breakout — アプリケーション設定(版の単一の源)
 // このファイルの APP_VERSION が唯一の版定義。他ファイルへの版の直書きは禁止。
 
-export const APP_VERSION = '0.6.1';
+export const APP_VERSION = '0.7.0';
 
 export const CANVAS_W = 400;
 export const CANVAS_H = 560;
@@ -54,6 +54,7 @@ export const BALL = {
 export const GAME = {
   livesStart: 3,     // 残機の初期値
   timeLimitSec: 180,  // 制限時間(秒)
+  idleDemoDelaySec: 60, // タイトル画面で操作がないままこの秒数が経過したらデモプレイを開始する
 };
 
 export const STAGE_COUNT = 3;
