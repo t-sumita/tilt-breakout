@@ -12,6 +12,8 @@ import { clamp, randInt } from './mathutils.js';
 
 const DEMO_PADDLE_FOLLOW_SPEED = 260; // px/s。デモプレイAIがボールを追う速度
 const DEMO_TILT_GAIN = PADDLE.maxTiltDeg / DEMO_PADDLE_FOLLOW_SPEED; // 横移動速度→傾き角への変換係数
+const DEMO_WOBBLE_CHANCE_PER_SEC = 0.15; // 単調な動きにならないよう、平均でこの逆数秒に1回ランダムな傾きのゆらぎを起こす
+const DEMO_WOBBLE_MAX_DEG = 12; // ゆらぎの最大振れ幅(度)
 const FIREWORKS_BURST_RATE = 3.2; // 1秒あたりの平均打ち上げ回数(オールクリア/隠しコマンド共通)
 
 const STAGE_BUILDERS = [createStage1, createStage2, createStage3];
@@ -144,14 +146,21 @@ export class Game {
   // 実プレイの state/stageData/ball/score/lives/timeRemaining には一切触れず、
   // 専用の this.demo オブジェクトだけで完結させる。
   startDemo() {
-    if (this.state !== 'title') return;
-    const stageIndex = randInt(0, STAGE_COUNT - 1);
+    if (this.state !== 'title' && this.state !== 'demo') return;
+    // ステージクリア後の続行時は、直前と同じ面が連続で選ばれないよう除外する
+    const prevIndex = this.demo ? this.demo.stageIndex : null;
+    let stageIndex = randInt(0, STAGE_COUNT - 1);
+    while (STAGE_COUNT > 1 && stageIndex === prevIndex) {
+      stageIndex = randInt(0, STAGE_COUNT - 1);
+    }
     const paddle = { x: CX, y: PADDLE.yMax, tilt: 0, halfW: PADDLE.halfW, halfH: PADDLE.halfH, vx: 0, vy: 0 };
     this.demo = {
       stageIndex,
       stageData: STAGE_BUILDERS[stageIndex](),
       paddle,
       ball: new Ball(paddle.x, paddle.y - paddle.halfH - BALL.radius - 1),
+      wobble: 0,
+      wobbleTarget: 0,
     };
     this._launchDemoBall();
     this.state = 'demo';
@@ -193,8 +202,13 @@ export class Game {
     paddle.y = clamp(paddle.y + dy, PADDLE.yMin, PADDLE.yMax);
     paddle.vy = dt > 0 ? dy / dt : 0;
 
-    // 傾き: 移動方向へわずかに傾ける(見た目のアクセント)
-    paddle.tilt = clamp(paddle.vx * DEMO_TILT_GAIN, -PADDLE.maxTiltDeg, PADDLE.maxTiltDeg);
+    // 傾き: 移動方向への追従に、単調にならないよう時々ランダムなゆらぎを重ねる
+    if (Math.random() < DEMO_WOBBLE_CHANCE_PER_SEC * dt) {
+      this.demo.wobbleTarget = (Math.random() * 2 - 1) * DEMO_WOBBLE_MAX_DEG;
+    }
+    this.demo.wobbleTarget *= Math.max(0, 1 - dt * 0.8); // ゆらぎの目標も徐々に0へ減衰させ自然に収める
+    this.demo.wobble += (this.demo.wobbleTarget - this.demo.wobble) * clamp(dt * 3, 0, 1);
+    paddle.tilt = clamp(paddle.vx * DEMO_TILT_GAIN + this.demo.wobble, -PADDLE.maxTiltDeg, PADDLE.maxTiltDeg);
 
     if (ball.stuck) {
       ball.x = paddle.x;

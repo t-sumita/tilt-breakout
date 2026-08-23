@@ -16,6 +16,15 @@ html, body {
 }
 .wrap { max-width: 440px; margin: 0 auto; padding: 14px 12px 24px; }
 
+.app-title {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  color: var(--line);
+  text-shadow: 0 0 10px rgba(127, 227, 212, 0.45);
+}
+
 .hud {
   font-size: 13px;
   letter-spacing: 0.06em;

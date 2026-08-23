@@ -25,7 +25,6 @@ const MESSAGES = {
   serve: 'TAP / SPACE で発射',
   stageClear: 'STAGE CLEAR — TAP で次へ',
   gameOver: 'GAME OVER — TAP でリトライ',
-  demo: 'DEMO PLAY — 操作で終了',
 };
 
 function formatTime(sec) {
