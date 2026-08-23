@@ -34,11 +34,11 @@ export function createStage2() {
   );
 
   // 穴の外側、中央の正方形からさらに玉1個分(直径 BALL.radius*2)離した位置の回転十字ジャマー
+  // 対応する同じ側の丸ブロック(下で定義)を破壊すると、この十字ジャマーの回転方向が反転する。
   const CROSS_OFFSET = 75 + BALL.radius * 2;
-  jammers.push(
-    { shape: 'cross', x: CB_X - CROSS_OFFSET, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: 1.3 } },
-    { shape: 'cross', x: CB_X + CROSS_OFFSET, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: -1.3 } },
-  );
+  const crossLeft = { shape: 'cross', x: CB_X - CROSS_OFFSET, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: 1.3 } };
+  const crossRight = { shape: 'cross', x: CB_X + CROSS_OFFSET, y: CB_Y - 100, size: 34, armThick: 34 / 3.2, angle: 0, motion: { type: 'rotate', speed: -1.3 } };
+  jammers.push(crossLeft, crossRight);
 
   // 穴の外にある三角ジャマー(中心寄りの位置で回転)
   const tri = (size) => [
@@ -49,10 +49,10 @@ export function createStage2() {
     { shape: 'triangle', x: CB_X + 148, y: CB_Y + 70, verts: tri(42), angle: (-20 * Math.PI) / 180, motion: { type: 'rotate', speed: -0.7 } },
   );
 
-  // 左右対称の丸ブロック(消せる、大きめの耐久値)
+  // 左右対称の丸ブロック(消せる、大きめの耐久値)。破壊すると同じ側の十字ジャマーの回転が反転する。
   targets.push(
-    { shape: 'circle', x: CB_X - 150, y: CB_Y - 55, r: 22, hp: 13, maxHp: 13 },
-    { shape: 'circle', x: CB_X + 150, y: CB_Y - 55, r: 22, hp: 13, maxHp: 13 },
+    { shape: 'circle', x: CB_X - 150, y: CB_Y - 55, r: 22, hp: 13, maxHp: 13, linkedJammer: crossLeft },
+    { shape: 'circle', x: CB_X + 150, y: CB_Y - 55, r: 22, hp: 13, maxHp: 13, linkedJammer: crossRight },
   );
 
   // 横に往復する棒ジャマー

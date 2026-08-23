@@ -273,6 +273,9 @@ export function stepBall(ball, dt, paddle, targets, jammers, rings) {
     events.push({ type: 'brickHit', target: t });
     if (t.hp <= 0) {
       t.destroyed = true;
+      if (t.linkedJammer && t.linkedJammer.motion) {
+        t.linkedJammer.motion.speed *= -1;
+      }
       events.push({ type: 'brickDestroyed', target: t });
     }
     break; // 1フレームにつき1オブジェクトのみ処理(安定性のため)
