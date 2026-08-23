@@ -1,7 +1,7 @@
 // Tilt Breakout — アプリケーション設定(版の単一の源)
 // このファイルの APP_VERSION が唯一の版定義。他ファイルへの版の直書きは禁止。
 
-export const APP_VERSION = '0.7.0';
+export const APP_VERSION = '0.7.1';
 
 export const CANVAS_W = 400;
 export const CANVAS_H = 560;

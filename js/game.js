@@ -11,7 +11,8 @@ import { Fireworks } from './fireworks.js';
 import { clamp, randInt } from './mathutils.js';
 
 const DEMO_PADDLE_FOLLOW_SPEED = 260; // px/s。デモプレイAIがボールを追う速度
-const EASTER_EGG_DURATION_SEC = 6;
+const DEMO_TILT_GAIN = PADDLE.maxTiltDeg / DEMO_PADDLE_FOLLOW_SPEED; // 横移動速度→傾き角への変換係数
+const FIREWORKS_BURST_RATE = 3.2; // 1秒あたりの平均打ち上げ回数(オールクリア/隠しコマンド共通)
 
 const STAGE_BUILDERS = [createStage1, createStage2, createStage3];
 
@@ -41,7 +42,7 @@ export class Game {
     this.fireworks = new Fireworks();
     this.onHudChange = null;
     // 隠しコマンド(メンテナンス合言葉)による花火演出のみの再現。実際のオールクリア記録には一切関与しない。
-    this.easterEgg = { active: false, timer: 0 };
+    this.easterEgg = { active: false };
     // アイドル時のデモプレイ。実プレイの state/stageData/ball/score/lives とは完全に独立させ、
     // デモの進行が本当の記録(スコア/ハイスコア/ステージクリア状態)へ影響しないようにする。
     this.demo = null;
@@ -131,11 +132,11 @@ export class Game {
     }
   }
 
-  // 隠しコマンド用: 既存のオールクリア花火演出だけを再現する(state/score/highScore/allClear には触れない)
+  // 隠しコマンド用: 既存のオールクリア花火演出だけを再現する(state/score/highScore/allClear には触れない)。
+  // 本番のオールクリア演出と同様、時間では終わらせず何か操作(タップ等)されるまで続ける。
   playEasterEggDemo() {
     this.fireworks.clear();
     this.easterEgg.active = true;
-    this.easterEgg.timer = EASTER_EGG_DURATION_SEC;
     this._hud();
   }
 
@@ -182,6 +183,19 @@ export class Game {
     paddle.x = clamp(paddle.x + dx, PADDLE.xMin, PADDLE.xMax);
     paddle.vx = dt > 0 ? dx / dt : 0;
 
+    // 縦方向: 普段は緩やかに上下へ揺れ、ボールが近づいて落下中は迎えに上がる
+    const nearX = Math.abs(ball.x - paddle.x) < paddle.halfW * 3;
+    const falling = ball.vy > 0;
+    const idleY = PADDLE.yMax - 16 + Math.sin(elapsed * 0.8) * 16;
+    const targetY = (nearX && falling) ? clamp(ball.y - 36, PADDLE.yMin, PADDLE.yMax) : clamp(idleY, PADDLE.yMin, PADDLE.yMax);
+    const maxStepY = DEMO_PADDLE_FOLLOW_SPEED * 0.6 * dt;
+    const dy = clamp(targetY - paddle.y, -maxStepY, maxStepY);
+    paddle.y = clamp(paddle.y + dy, PADDLE.yMin, PADDLE.yMax);
+    paddle.vy = dt > 0 ? dy / dt : 0;
+
+    // 傾き: 移動方向へわずかに傾ける(見た目のアクセント)
+    paddle.tilt = clamp(paddle.vx * DEMO_TILT_GAIN, -PADDLE.maxTiltDeg, PADDLE.maxTiltDeg);
+
     if (ball.stuck) {
       ball.x = paddle.x;
       ball.y = paddle.y - paddle.halfH - ball.radius - 1;
@@ -207,15 +221,9 @@ export class Game {
     if (this.paused) return;
 
     if (this.easterEgg.active) {
-      this.easterEgg.timer -= dt;
       this.fireworks.update(dt);
-      if (Math.random() < dt * 1.5) {
+      if (Math.random() < dt * FIREWORKS_BURST_RATE) {
         this.fireworks.spawnBurst(40 + Math.random() * 320, 80 + Math.random() * 220);
-      }
-      if (this.easterEgg.timer <= 0) {
-        this.easterEgg.active = false;
-        this.fireworks.clear();
-        this._hud();
       }
     }
 
@@ -228,7 +236,7 @@ export class Game {
 
     if (this.state === 'win' && this.allClear) {
       this.fireworks.update(dt);
-      if (Math.random() < dt * 1.5) {
+      if (Math.random() < dt * FIREWORKS_BURST_RATE) {
         this.fireworks.spawnBurst(40 + Math.random() * 320, 80 + Math.random() * 220);
       }
     }

@@ -171,15 +171,14 @@ canvas {
   appearance: none;
   background: transparent;
   border: none;
-  color: #3a4a58;
+  color: #506a80;
   font-size: 9px;
   font-family: inherit;
   letter-spacing: 0.03em;
   padding: 2px 4px;
   cursor: pointer;
-  opacity: 0.55;
 }
-.config-maintenance:hover { opacity: 1; color: #7d94a8; }
+.config-maintenance:hover { color: #7d94a8; }
 
 .hint {
   font-size: 11px;
